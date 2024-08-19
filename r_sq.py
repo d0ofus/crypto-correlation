@@ -43,7 +43,7 @@ def save_ohlcv_to_db(symbol, ohlcv_data, db_folder='databases', db_name='ohlcv_d
     df.to_sql(symbol.replace('/', '_'), conn, if_exists='replace', index=False)
     conn.close()
 
-def fetch_ohlcv(symbol, since, limit=500, db_name='ohlcv_data.db'):
+def fetch_ohlcv(symbol, since, limit=500, db_folder='databases', db_name='ohlcv_data.db'):
     try:
         all_ohlcv = []
         while True:
@@ -54,7 +54,7 @@ def fetch_ohlcv(symbol, since, limit=500, db_name='ohlcv_data.db'):
             since = ohlcv[-1][0] + 1  # Move to the next batch
             if len(ohlcv) < limit:  # If the last batch fetched less than the limit, stop
                 break
-        save_ohlcv_to_db(symbol, all_ohlcv, db_name)
+        save_ohlcv_to_db(symbol, all_ohlcv, db_folder, db_name)
         return all_ohlcv
     except Exception as e:
         print(f"Error fetching data for {symbol}: {e}")
