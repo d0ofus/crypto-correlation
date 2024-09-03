@@ -24,7 +24,7 @@ def run_r_squared():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/test')
-def test(db_folder='databases', db_name='test.db'):
+def test(db_folder='databases', db_name='r_Squared_matrix.db'):
     db_path = os.path.join(db_folder, db_name)
     conn = sqlite3.connect(db_path)
     r_squared_matrix = pd.read_sql('SELECT * FROM r_squared_matrix', conn, index_col='index')
