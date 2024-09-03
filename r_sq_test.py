@@ -7,9 +7,6 @@ import pandas as pd
 from datetime import datetime, timedelta
 from sklearn.linear_model import LinearRegression
 
-current_directory = os.path.dirname(__file__)
-os.chdir(current_directory) 
-
 def process_r_squared_matrix():
     # Initialize the Binance exchange
     exchange = ccxt.binance()
