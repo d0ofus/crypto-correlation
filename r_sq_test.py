@@ -27,55 +27,55 @@ def process_r_squared_matrix():
         all_symbols_unique = filtered_spot_pairs + perp_pairs
         return all_symbols_unique
 
-    # def save_ohlcv_to_db(symbol, ohlcv_data, db_folder='databases', db_name='ohlcv_data.db'):
-    #     os.makedirs(db_folder, exist_ok=True)
-    #     db_path = os.path.join(db_folder, db_name)
-    #     conn = sqlite3.connect(db_path)
-    #     df = pd.DataFrame(ohlcv_data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-    #     df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-    #     df.to_sql(symbol.replace('/', '_'), conn, if_exists='replace', index=False)
-    #     conn.close()
+    def save_ohlcv_to_db(symbol, ohlcv_data, db_folder='databases', db_name='ohlcv_data.db'):
+        os.makedirs(db_folder, exist_ok=True)
+        db_path = os.path.join(db_folder, db_name)
+        conn = sqlite3.connect(db_path)
+        df = pd.DataFrame(ohlcv_data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+        df.to_sql(symbol.replace('/', '_'), conn, if_exists='replace', index=False)
+        conn.close()
 
-    # def fetch_ohlcv(symbol, since, limit=500, db_folder='databases', db_name='ohlcv_data.db'):
-    #     try:
-    #         all_ohlcv = []
-    #         while True:
-    #             ohlcv = exchange.fetch_ohlcv(symbol, timeframe='5m', since=since, limit=limit)
-    #             if not ohlcv:
-    #                 break
-    #             all_ohlcv.extend(ohlcv)
-    #             since = ohlcv[-1][0] + 1
-    #             if len(ohlcv) < limit:
-    #                 break
-    #         save_ohlcv_to_db(symbol, all_ohlcv, db_folder, db_name)
-    #         return all_ohlcv
-    #     except Exception as e:
-    #         print(f"Error fetching data for {symbol}: {e}")
-    #         return []
+    def fetch_ohlcv(symbol, since, limit=500, db_folder='databases', db_name='ohlcv_data.db'):
+        try:
+            all_ohlcv = []
+            while True:
+                ohlcv = exchange.fetch_ohlcv(symbol, timeframe='5m', since=since, limit=limit)
+                if not ohlcv:
+                    break
+                all_ohlcv.extend(ohlcv)
+                since = ohlcv[-1][0] + 1
+                if len(ohlcv) < limit:
+                    break
+            save_ohlcv_to_db(symbol, all_ohlcv, db_folder, db_name)
+            return all_ohlcv
+        except Exception as e:
+            print(f"Error fetching data for {symbol}: {e}")
+            return []
 
-    # def calculate_r_squared_matrix(df):
-    #     print(">>>>>> Processing R-Square Calculations")
-    #     symbols = df.columns
-    #     n = len(symbols)
-    #     r_squared_matrix = pd.DataFrame(np.zeros((n, n)), index=symbols, columns=symbols)
+    def calculate_r_squared_matrix(df):
+        print(">>>>>> Processing R-Square Calculations")
+        symbols = df.columns
+        n = len(symbols)
+        r_squared_matrix = pd.DataFrame(np.zeros((n, n)), index=symbols, columns=symbols)
 
-    #     for i in range(n):
-    #         for j in range(i, n):
-    #             if i == j:
-    #                 r_squared_matrix.iloc[i, j] = 1.0
-    #             else:
-    #                 x = df.iloc[:, i].values.reshape(-1, 1)
-    #                 y = df.iloc[:, j].values
-    #                 if len(x) == 0 or len(y) == 0:
-    #                     continue
-    #                 model = LinearRegression().fit(x, y)
-    #                 r_squared = model.score(x, y)
-    #                 r_squared_matrix.iloc[i, j] = r_squared
-    #                 r_squared_matrix.iloc[j, i] = r_squared
+        for i in range(n):
+            for j in range(i, n):
+                if i == j:
+                    r_squared_matrix.iloc[i, j] = 1.0
+                else:
+                    x = df.iloc[:, i].values.reshape(-1, 1)
+                    y = df.iloc[:, j].values
+                    if len(x) == 0 or len(y) == 0:
+                        continue
+                    model = LinearRegression().fit(x, y)
+                    r_squared = model.score(x, y)
+                    r_squared_matrix.iloc[i, j] = r_squared
+                    r_squared_matrix.iloc[j, i] = r_squared
 
-    #     return r_squared_matrix
+        return r_squared_matrix
 
-    def save_r_squared_matrix_to_db(r_squared_matrix, db_folder='databases', db_name='test.db'):
+    def save_r_squared_matrix_to_db(r_squared_matrix, db_folder='databases', db_name='r_squared_matrix.db'):
         os.makedirs(db_folder, exist_ok=True)
         db_path = os.path.join(db_folder, db_name)
         conn = sqlite3.connect(db_path)
@@ -85,40 +85,31 @@ def process_r_squared_matrix():
 
     # Main process
     print("======== Processing R-Square Matrix =========")
-    # start_time = time.time()
+    start_time = time.time()
 
-    # data = {}
-    # symbols = get_trading_pairs()
-    # symbols_len = len(symbols)
-    # count = 0
-    # for symbol in symbols:
-    #     count += 1
-    #     ohlcv = fetch_ohlcv(symbol, since)
-    #     if len(ohlcv) >= min_length:
-    #         df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-    #         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-    #         data[symbol] = df['close'].values
-    #         print(f"{count}/{symbols_len}: Added {symbol} to database")
-    #     else:
-    #         print(f"{count}/{symbols_len}: {symbol} dropped because it has not recorded {min_days} of trading days")
+    data = {}
+    symbols = get_trading_pairs()
+    symbols_len = len(symbols)
+    count = 0
+    for symbol in symbols:
+        count += 1
+        ohlcv = fetch_ohlcv(symbol, since)
+        if len(ohlcv) >= min_length:
+            df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+            data[symbol] = df['close'].values
+            print(f"{count}/{symbols_len}: Added {symbol} to database")
+        else:
+            print(f"{count}/{symbols_len}: {symbol} dropped because it has not recorded {min_days} of trading days")
 
-    # data_trimmed = {symbol: prices[:min_length] for symbol, prices in data.items()}
-    # df = pd.DataFrame(data_trimmed).dropna(axis=1)
-    # r_squared_matrix = calculate_r_squared_matrix(df)
-    # save_r_squared_matrix_to_db(r_squared_matrix)
+    data_trimmed = {symbol: prices[:min_length] for symbol, prices in data.items()}
+    df = pd.DataFrame(data_trimmed).dropna(axis=1)
+    r_squared_matrix = calculate_r_squared_matrix(df)
+    save_r_squared_matrix_to_db(r_squared_matrix)
 
-    data = {
-    'Column1': [1, 2, 3, 4, 5],
-    'Column2': ['A', 'B', 'C', 'D', 'E'],
-    'Column3': [10.5, 20.5, 30.5, 40.5, 50.5]
-    }
-
-    df = pd.DataFrame(data)
-    save_r_squared_matrix_to_db(df)
-
-    # end_time = time.time()
-    # elapsed_time = end_time - start_time
-    # print(f"Time taken to generate r-squared matrix: {elapsed_time:.2f} seconds")
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Time taken to generate r-squared matrix: {elapsed_time:.2f} seconds")
 
 if __name__ == "__main__":
     process_r_squared_matrix()
